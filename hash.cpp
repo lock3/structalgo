@@ -62,11 +62,11 @@ int main()
   struct S0 { };
   struct S1 { int x = 42; };
   struct S2 { int x = 42, y = 42; };
-  hash_append(h, S0());
-  hash_append(h, S1());
-  hash_append(h, S2());
+  // hash_append(h, S0());
+  // hash_append(h, S1());
+  // hash_append(h, S2());
   hash_append(h, std::make_pair(42, 'a'));
-  // hash_append(h, std::make_tuple(42, 'a', 32.0));
+  hash_append(h, std::make_tuple(42, 'a', 32.0));
 
   h.dump(std::cout);
 }

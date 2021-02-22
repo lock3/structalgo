@@ -102,56 +102,44 @@ namespace hashing
     hash(&p, sizeof(p));
   }
 
-#if 0
   namespace detail
   {
-    namespace meta = std::experimental::meta;
-
-    template<hash_algorithm H, sa::class_type T>
-    std::size_t hash_append_class(H& hash, T const& obj)
+    template<hash_algorithm H, sa::standard_layout_class T>
+    void hash_append_standard_layout(H& hash, T const& obj)
     {
+      namespace meta = std::experimental::meta;
       std::size_t count = 0;
-
-      // Recursively hash append base class sub-objects.
-      constexpr auto bases = meta::bases_of(^T);
-      template for (constexpr meta::info base : bases) {
-        // auto const& sub = static_cast<typename [:meta::type_of(base):] const&>(obj);
-        count += hash_append_class(hash, obj.[:base:]);
-      }
-      
-      // Append data members next.
       constexpr auto members = meta::members_of(^T, meta::is_data_member);
       template for (constexpr meta::info member : members) {
         hash_append(hash, obj.[:member:]);
         ++count;
       }
-      
-      return count;
+      hash_append(hash, count);
     }
+
+    template<hash_algorithm H, sa::destructurable_class T>
+    void hash_append_destructurable(H& hash, T const& obj)
+    {
+      std::size_t count = 0;
+      template for (auto member : obj) {
+        hash_append(hash, member);
+        ++count;
+      }
+      hash_append(hash, count);
+    }
+
   } // namespace detail
 
-  /// Hash a plain class.
   template<hash_algorithm H, sa::class_type T>
   void hash_append(H& hash, T const& obj)
   {
-    std::size_t count = detail::hash_append_class(hash, obj);
-    hash_append(hash, count);
+    // TODO: Standard layout classes should be destrurable by template for.
+    // We don't need reflection at all for this case.
+    if constexpr (sa::destructurable_class<T>)
+      detail::hash_append_destructurable(hash, obj);
+    else
+      detail::hash_append_standard_layout(hash, obj);
   }
-#endif
-
-  template<hash_algorithm H, sa::class_type T>
-  void hash_append(H& hash, T const& obj)
-  {
-    namespace meta = std::experimental::meta;
-    std::size_t count = 0;
-    constexpr auto members = meta::members_of(^T, meta::is_data_member);
-    template for (constexpr meta::info member : members) {
-      hash_append(hash, obj.[:member:]);
-      ++count;
-    }
-    hash_append(hash, count);
-  }
-
 
 #if 0
   /// Hash a range of elements.

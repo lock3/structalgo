@@ -2,6 +2,7 @@
 #define STRUCTALGO_CONCEPTS_HPP
 
 #include <type_traits>
+#include <tuple>
 
 #include <experimental/meta>
 
@@ -11,9 +12,23 @@ namespace sa
   template<typename T>
   concept enumeral = std::is_enum_v<T>;
 
-  // TODO: This is almost certainly wrong.
+  // Any old class.
   template<typename T>
   concept class_type = std::is_class_v<T>;
+
+  // A standard layout class.
+  template<typename T>
+  concept standard_layout_class =
+    std::is_class_v<T> &&
+    std::is_standard_layout_v<T>;
+
+  // Specifically a destructurable class.
+  template<typename T>
+  concept destructurable_class =
+    std::is_class_v<T> &&
+    requires {
+      { std::tuple_size_v<T> } -> std::integral;
+    };
 
 } // namespace sa
 
