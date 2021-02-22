@@ -102,16 +102,56 @@ namespace hashing
     hash(&p, sizeof(p));
   }
 
+#if 0
+  namespace detail
+  {
+    namespace meta = std::experimental::meta;
+
+    template<hash_algorithm H, sa::class_type T>
+    std::size_t hash_append_class(H& hash, T const& obj)
+    {
+      std::size_t count = 0;
+
+      // Recursively hash append base class sub-objects.
+      constexpr auto bases = meta::bases_of(^T);
+      template for (constexpr meta::info base : bases) {
+        // auto const& sub = static_cast<typename [:meta::type_of(base):] const&>(obj);
+        count += hash_append_class(hash, obj.[:base:]);
+      }
+      
+      // Append data members next.
+      constexpr auto members = meta::members_of(^T, meta::is_data_member);
+      template for (constexpr meta::info member : members) {
+        hash_append(hash, obj.[:member:]);
+        ++count;
+      }
+      
+      return count;
+    }
+  } // namespace detail
+
   /// Hash a plain class.
-  template<hash_algorithm H, sa::plain_struct T>
+  template<hash_algorithm H, sa::class_type T>
+  void hash_append(H& hash, T const& obj)
+  {
+    std::size_t count = detail::hash_append_class(hash, obj);
+    hash_append(hash, count);
+  }
+#endif
+
+  template<hash_algorithm H, sa::class_type T>
   void hash_append(H& hash, T const& obj)
   {
     namespace meta = std::experimental::meta;
+    std::size_t count = 0;
     constexpr auto members = meta::members_of(^T, meta::is_data_member);
-    template for (constexpr meta::info member : members)
+    template for (constexpr meta::info member : members) {
       hash_append(hash, obj.[:member:]);
-    hash_append(hash, std::distance(members.begin(), members.end()));
+      ++count;
+    }
+    hash_append(hash, count);
   }
+
 
 #if 0
   /// Hash a range of elements.

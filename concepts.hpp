@@ -13,7 +13,7 @@ namespace sa
 
   // TODO: This is almost certainly wrong.
   template<typename T>
-  concept plain_struct = std::is_class_v<T> && std::is_standard_layout_v<T>;
+  concept class_type = std::is_class_v<T>;
 
 } // namespace sa
 
