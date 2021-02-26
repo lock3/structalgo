@@ -133,6 +133,9 @@ namespace hashing
   //
   // These constraints define overlapping sets of types. Some destructurable
   // types are also classes.
+  //
+  // FIXME: The class_type constraint is REALLY too loose. We probably want
+  // similar guarantees of no unnamed unions.
   template<hash_algorithm H, typename T>
     requires sa::class_type<T> || sa::destructurable<T>
   void hash_append(H& hash, T const& obj)

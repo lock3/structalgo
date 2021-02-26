@@ -141,7 +141,7 @@ namespace sa
     template<typename T>
     concept is_destructurable =
       tuple_type<T> ||
-      // destructurable_class_type<T> ||
+      destructurable_class_type<T> ||
       std::is_array_v<T>;
 
   } // namespace detail
