@@ -67,10 +67,9 @@ int main()
   hash_append(h, S0());
   hash_append(h, S1());
   hash_append(h, S2());
+  // hash_append(h, S());
   hash_append(h, std::make_pair(42, 'a'));
   hash_append(h, std::make_tuple(42, 'a', 32.0));
-
-  hash_append(h, S());
 
   h.dump(std::cout);
 }

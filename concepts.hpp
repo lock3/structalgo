@@ -150,6 +150,27 @@ namespace sa
   template<typename T>
   concept destructurable = detail::is_destructurable<T>;
 
+  namespace detail
+  {
+    // FIXME: This is is practically the same as has_anonymous_union except
+    // that it operates on all subobjects, not just direct members.
+    template<typename T>
+    consteval bool no_anonymous_union_subobjects()
+    {
+      auto members = meta::subobjects_of(^T);
+      for (meta::info member : members) {
+        if (meta::is_union_type(meta::type_of(member)) && 
+            constexpr_length(meta::name_of(member)) == 0)
+          return false;
+      }
+      return true;
+    }
+  } // namespace detail
+
+  template<typename T>
+  concept basic_data_type = detail::no_anonymous_union_subobjects<T>();
+
+
 } // namespace sa
 
 #endif

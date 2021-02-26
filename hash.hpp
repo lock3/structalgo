@@ -104,7 +104,7 @@ namespace hashing
 
   namespace detail
   {
-    template<hash_algorithm H, sa::class_type T>
+    template<hash_algorithm H, sa::basic_data_type T>
     void hash_append_class(H& hash, T const& obj)
     {
       namespace meta = std::experimental::meta;
@@ -137,7 +137,7 @@ namespace hashing
   // FIXME: The class_type constraint is REALLY too loose. We probably want
   // similar guarantees of no unnamed unions.
   template<hash_algorithm H, typename T>
-    requires sa::class_type<T> || sa::destructurable<T>
+    requires sa::basic_data_type<T> || sa::destructurable<T>
   void hash_append(H& hash, T const& obj)
   {
     if constexpr (sa::destructurable<T>)
