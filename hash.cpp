@@ -46,27 +46,31 @@ int main()
   
   debug_hasher h;
 
-  hash_append(h, char(42));
-  hash_append(h, 42);
-  hash_append(h, 42ull);
+  // hash_append(h, char(42));
+  // hash_append(h, 42);
+  // hash_append(h, 42ull);
 
-  enum E0 { A, B, C };
-  enum class E1 { A, B, C };
-  hash_append(h, C);
-  hash_append(h, E1::C);
+  // enum E0 { A, B, C };
+  // enum class E1 { A, B, C };
+  // hash_append(h, C);
+  // hash_append(h, E1::C);
 
-  int n = 42;
-  hash_append(h, &n);
-  hash_append(h, nullptr);
+  // int n = 42;
+  // hash_append(h, &n);
+  // hash_append(h, nullptr);
 
-  struct S0 { };
-  struct S1 { int x = 42; };
-  struct S2 { int x = 42, y = 42; };
-  // hash_append(h, S0());
-  // hash_append(h, S1());
-  // hash_append(h, S2());
+  class S0 { };
+  class S1 { int x = 42; };
+  struct S2 { int x = 42; private: int y = 42; };
+  struct S { union { int x; }; };
+
+  hash_append(h, S0());
+  hash_append(h, S1());
+  hash_append(h, S2());
   hash_append(h, std::make_pair(42, 'a'));
   hash_append(h, std::make_tuple(42, 'a', 32.0));
+
+  hash_append(h, S());
 
   h.dump(std::cout);
 }

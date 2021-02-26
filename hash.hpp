@@ -104,20 +104,20 @@ namespace hashing
 
   namespace detail
   {
-    template<hash_algorithm H, sa::standard_layout_class T>
-    void hash_append_standard_layout(H& hash, T const& obj)
+    template<hash_algorithm H, sa::class_type T>
+    void hash_append_class(H& hash, T const& obj)
     {
       namespace meta = std::experimental::meta;
       std::size_t count = 0;
-      constexpr auto members = meta::members_of(^T, meta::is_data_member);
-      template for (constexpr meta::info member : members) {
-        hash_append(hash, obj.[:member:]);
+      constexpr auto subobjects = meta::subobjects_of(^T, meta::is_data_member);
+      template for (constexpr meta::info sub : subobjects) {
+        hash_append(hash, obj.[:sub:]);
         ++count;
       }
       hash_append(hash, count);
     }
 
-    template<hash_algorithm H, sa::destructurable_class T>
+    template<hash_algorithm H, sa::destructurable T>
     void hash_append_destructurable(H& hash, T const& obj)
     {
       std::size_t count = 0;
@@ -127,42 +127,21 @@ namespace hashing
       }
       hash_append(hash, count);
     }
-
   } // namespace detail
 
-  template<hash_algorithm H, sa::class_type T>
+  // Hash classes or destructurable types.
+  //
+  // These constraints define overlapping sets of types. Some destructurable
+  // types are also classes.
+  template<hash_algorithm H, typename T>
+    requires sa::class_type<T> || sa::destructurable<T>
   void hash_append(H& hash, T const& obj)
   {
-    // TODO: Standard layout classes should be destrurable by template for.
-    // We don't need reflection at all for this case.
-    if constexpr (sa::destructurable_class<T>)
+    if constexpr (sa::destructurable<T>)
       detail::hash_append_destructurable(hash, obj);
     else
-      detail::hash_append_standard_layout(hash, obj);
+      detail::hash_append_class(hash, obj);
   }
-
-#if 0
-  /// Hash a range of elements.
-  template<std::ranges::range R, hash_algorithm<T> H>
-  void hash_append(H& hash, R const& range)
-  {
-    std::size_t count = 0;
-    for (auto const& elem : range) {
-      hash_append(hash, elem);
-      ++count;
-    }
-    hash_append(hash, count);
-  }
-
-  /// Hash a sized range of elements.
-  template<std::ranges::sized_range R, hash_algorithm<T> H>
-  void hash_append(fn1va64_hasher& h, R const& range)
-  {
-    for (auto const& elem : range)
-      hash_append(h, elem);
-    hash_append(h, std::ranges::size(range));
-  }
-#endif
 
   // hash
 
@@ -177,18 +156,6 @@ namespace hashing
       return (std::size_t)h;
     };
   };
-
-  // /// Hashes a pointer to an object.
-  // template<typename T>
-  // struct Indirect_hash
-  // {
-  //   std::size_t operator()(const T* obj) const noexcept
-  //   {
-  //     fn1va64_hasher h;
-  //     hash_append(h, *obj);
-  //     return (std::size_t)h;
-  //   };
-  // };
 
 } // namespace hashing
 
