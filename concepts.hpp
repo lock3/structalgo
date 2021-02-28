@@ -77,7 +77,7 @@ namespace sa
       class_type<T> &&
       requires {
         { std::tuple_size<T>::value } -> std::integral;
-        // requires check_tuple_get<T, std::tuple_size_v<T>>();
+        requires check_tuple_get<T, std::tuple_size_v<T>>();
       };
 
     // Returns true if the first data member of T is public or if T is empty.
