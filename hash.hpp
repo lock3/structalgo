@@ -1,5 +1,5 @@
-#ifndef HASHING_UTILITY_HASH_HPP
-#define HASHING_UTILITY_HASH_HPP
+#ifndef HASHING_HPP
+#define HASHING_HPP
 
 #include "concepts.hpp"
 
@@ -132,6 +132,17 @@ namespace hashing
     /// sets of types, or when refinement is clearly involved. When that isn't
     /// the case---when the sets of types overlap---we can only choose behaviors
     /// based on some preference. That's where constexpr if comes into play.
+    ///
+    /// TODO: Define requirements for this algorithm.
+    ///
+    /// TODO: Provide a specialization for composite data types with unique
+    /// object representation. Those can be applied separately for the range and
+    /// destructuring cases, and possibly data type cases. We might also want to
+    /// emit a warning for customizations that could be optimized, although
+    /// those warnings are spurious if not all members are hashed by the
+    /// customizing type.
+    ///
+    /// TODO: Argument needs to be forwarded.
     template<hash_algorithm H, typename T>
     void operator()(H& hash, T const& obj) const noexcept
     {

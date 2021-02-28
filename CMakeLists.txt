@@ -15,3 +15,6 @@ add_library(sa
 add_executable(hash
   hash.cpp)
 
+add_executable(compare
+  compare.cpp)
+
