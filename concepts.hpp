@@ -81,6 +81,10 @@ namespace sa
       };
 
     // Returns true if the first data member of T is public or if T is empty.
+    //
+    // TODO: This should not be a template, but there's a bug in the current
+    // implementation that prevents me from calling consteval functions from
+    // concept definitions.
     template<typename T>
     consteval bool is_first_member_accessible()
     {
@@ -97,6 +101,10 @@ namespace sa
     }
 
     // Returns true if `T` contains a data member that is an anonymous union.
+    //
+    // TODO: This should not be a template, but there's a bug in the current
+    // implementation that prevents me from calling consteval functions from
+    // concept definitions.
     template<typename T>
     consteval bool has_anonymous_union()
     {
@@ -110,6 +118,10 @@ namespace sa
     }
 
     // Returns true if `T` contains no data members that are anonymous unions.
+    //
+    // TODO: This should not be a template, but there's a bug in the current
+    // implementation that prevents me from calling consteval functions from
+    // concept definitions.
     template<typename T>
     consteval bool no_anonymous_union()
     {
@@ -141,9 +153,6 @@ namespace sa
 
     // Returns true if `T` can be used as the initializer of a structured
     // binding.
-    //
-    // NOTE: This isn't a concept because I don't want the disjunction to
-    // participate in ordering overloads.
     //
     // TODO: Do we also care about destructuring constexpr ranges? Is there
     // overlap with the expansion statements, or is destrucurable necessarily
