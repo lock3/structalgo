@@ -10,6 +10,20 @@
 
 namespace sa
 {
+  // Always false, but always dependent.
+  template<typename T>
+  consteval bool dependent_false()
+  {
+    return false;
+  }
+
+  // Always false, but always dependent.
+  template<auto X>
+  consteval bool dependent_false()
+  {
+    return false;
+  }
+
   /// Satisfied if `T` is an enumeration type.
   template<typename T>
   concept enumeral = std::is_enum_v<T>;
@@ -168,8 +182,9 @@ namespace sa
   } // namespace detail
 
   template<typename T>
-  concept basic_data_type = detail::no_anonymous_union_subobjects<T>();
-
+  concept basic_data_type =
+    class_type<T> &&
+    detail::no_anonymous_union_subobjects<T>();
 
 } // namespace sa
 
