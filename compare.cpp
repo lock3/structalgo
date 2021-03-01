@@ -14,9 +14,16 @@ std::ostream& operator<<(std::ostream& os, std::strong_ordering ord)
   return os << "equal";
 }
 
+template<typename T>
+void test(T a, T b)
+{
+  using namespace lock3;
+  std::cout << "compare(" << a << ", " << b << ") == " << compare(a, b) << '\n';
+}
+
 int main()
 {
-  namespace cmp = comparison;
-
-  std::cout << cmp::compare(0, 42) << '\n';
+  test(0, 0);
+  test(0, 42);
+  test(42, 0);
 }

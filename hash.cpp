@@ -4,9 +4,12 @@
 #include <iomanip>
 #include <vector>
 #include <tuple>
+#include <unordered_map>
 
 struct debug_hasher
 {
+  using result_type = std::size_t;
+
   void operator()(void const* key, std::size_t len) noexcept
   {
     unsigned char const* p = static_cast<unsigned char const*>(key);
@@ -56,12 +59,12 @@ namespace game
     ratio health;
     ratio magic;
 
-    template<hashing::hash_algorithm H>
+    template<lock3::hash_algorithm H>
     void hash_append(H& hash) const
     {
-      hashing::hash_append(hash, name);
-      hashing::hash_append(hash, health);
-      hashing::hash_append(hash, magic);
+      lock3::hash_append(hash, name);
+      lock3::hash_append(hash, health);
+      lock3::hash_append(hash, magic);
     }
   };
 
@@ -69,10 +72,10 @@ namespace game
   {
     int id;
 
-    template<hashing::hash_algorithm H>
+    template<lock3::hash_algorithm H>
     friend void hash_append(H& hash, monster const& m)
     {
-      hashing::hash_append(hash, m.id);
+      lock3::hash_append(hash, m.id);
     }
 
     // Suppress customization.
@@ -83,21 +86,45 @@ namespace game
   {
     int id;
 
+    // FIXME: Replace this with comprison functions
+
+    friend bool operator==(item a, item b)
+    {
+      return a.id == b.id;
+    }
+
+    friend bool operator!=(item a, item b)
+    {
+      return a.id != b.id;
+    }
+
     // Suppress customization.
     union { int x; };
   };
 
-  template<hashing::hash_algorithm H>
+  template<lock3::hash_algorithm H>
   void hash_append(H& hash, item const& i)
   {
-    hashing::hash_append(hash, i.id);
+    lock3::hash_append(hash, i.id);
   }
 
 } // namespace game
 
+void test_unordered_map()
+{
+  using hash = lock3::hash<lock3::fn1va64_hasher>;
+  std::unordered_map<game::item, int, hash> prices;
+  prices.emplace(game::item {0}, 100);
+  prices.emplace(game::item {1}, 200);
+
+  std::cout << prices[game::item {0}] << '\n';
+  std::cout << prices[game::item {1}] << '\n';
+  assert(prices.find(game::item {42}) == prices.end());
+}
+
 int main()
 {
-  using namespace hashing;
+  using namespace lock3;
   
   debug_hasher h;
 
@@ -128,8 +155,8 @@ int main()
   hash_append(h, std::make_pair(42, 'a'));
   hash_append(h, std::make_tuple(42, 'a', 32.0));
 
-  // player andrew {"andrew", {100, 100}, {50, 50}};
-  // hash_append(h, andrew);
+  game::player andrew {"andrew", {100, 100}, {50, 50}};
+  hash_append(h, andrew);
 
   game::monster dragon {-1};
   hash_append(h, dragon);
@@ -138,4 +165,6 @@ int main()
   hash_append(h, sword);
 
   h.dump(std::cout);
+
+  test_unordered_map();
 }

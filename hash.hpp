@@ -8,14 +8,14 @@
 #include <concepts>
 #include <ranges>
 
-#include <iostream> // FIXME: Remove this.
-
-namespace hashing
+namespace lock3
 {
   /// The generic fnv1a hash algorithm.
   template<typename T, T Prime, T Offset>
   struct fn1va_hash
   {
+    using result_type = T;
+
     fn1va_hash()
       : code(Offset)
     {
@@ -31,7 +31,7 @@ namespace hashing
     }
 
     /// Converts to the computed hash code.
-    explicit operator T() const
+    explicit operator result_type() const
     {
       return code;
     }
@@ -41,27 +41,32 @@ namespace hashing
   };
 
   /// The fnv1a hash algorithm for 64-bit integers.
-  ///
-  /// We use inheritance so the prime and Offset aren't exposed in diagnostics.
   struct fn1va32_hasher : fn1va_hash<std::uint32_t, 16777619u, 2166136261u>
   {
   };
 
   /// The fnv1a hash algorithm for 64-bit integers.
-  ///
-  /// We use inheritance so the prime and Offset aren't exposed in diagnostics.
   struct fn1va64_hasher : fn1va_hash<std::uint64_t, 1099511628211ul, 14695981039346656037ul>
   {
   };
 
-  // hasher
+  // hash_algorithm
 
+  /// Satisfied when `H` is a hash algorithm.
   template<typename H>
   concept hash_algorithm =
     requires (H& hash, void const* p, std::size_t n) {
+      typename H::result_type;
+      requires std::unsigned_integral<typename H::result_type>;
       hash(p, n);
-      { (std::uintmax_t)hash } -> std::integral;
+      { (typename H::result_type)hash } -> std::same_as<typename H::result_type>;
     };
+
+  // hash_result_t
+
+  // The result type of a hash.
+  template<hash_algorithm H>
+  using hash_result_t = typename H::result_type;
 
   // hash_append
 
@@ -83,6 +88,15 @@ namespace hashing
         hash_append(hash, t);
       };
 
+    // Satisfied if T is a compound type that can be hashed.
+    template<typename T, typename H>
+    concept compound_hashable =
+      member_hashable<T, H> ||
+      adl_hashable<T, H> ||
+      std::ranges::range<T> ||
+      destructurable<T> ||
+      basic_data_type<T>;
+
   } // namespace detail
 
   struct hash_append_fn
@@ -95,7 +109,7 @@ namespace hashing
     }
 
     /// Append the bits of enumeration types.
-    template<hash_algorithm H, sa::enumeral T>
+    template<hash_algorithm H, enumeral T>
     void operator()(H& hash, T t) const noexcept
     {
       hash(&t, sizeof(t));
@@ -142,22 +156,22 @@ namespace hashing
     /// those warnings are spurious if not all members are hashed by the
     /// customizing type.
     ///
-    /// TODO: Argument needs to be forwarded.
-    template<hash_algorithm H, typename T>
+    /// TODO: Some ranges (e.g., filter_view) are not const-iterable. To
+    /// facilitatee those, we probably need to forward `obj` and rethink all
+    /// our concepts.
+    template<hash_algorithm H, detail::compound_hashable<H> T>
     void operator()(H& hash, T const& obj) const noexcept
     {
       if constexpr (detail::member_hashable<T, H>)
         append_using_member(hash, obj);
-      else if constexpr (std::ranges::range<T>)
-        append_range(hash, obj);
-      else if constexpr (sa::destructurable<T>)
-        append_destructurable(hash, obj);
-      else if constexpr (sa::basic_data_type<T>)
-        append_data_type(hash, obj);
       else if constexpr (detail::adl_hashable<T, H>)
         append_using_adl(hash, obj);
-      else
-        static_assert(sa::dependent_false<T>(), "no matching overload");
+      else if constexpr (std::ranges::range<T>)
+        append_range(hash, obj);
+      else if constexpr (destructurable<T>)
+        append_destructurable(hash, obj);
+      else // basic_data_type<T>
+        append_data_type(hash, obj);
     }
 
     // Append for member customization.
@@ -197,7 +211,7 @@ namespace hashing
     }
 
     // Hash append for arrays, tuples, and other simple classes.
-    template<hash_algorithm H, sa::destructurable T>
+    template<hash_algorithm H, destructurable T>
     void append_destructurable(H& hash, T const& obj) const noexcept
     {
       std::size_t count = 0;
@@ -209,7 +223,7 @@ namespace hashing
     }
 
     // Hash append for basic data types in an application domain.
-    template<hash_algorithm H, sa::basic_data_type T>
+    template<hash_algorithm H, basic_data_type T>
     void append_data_type(H& hash, T const& obj) const noexcept
     {
       namespace meta = std::experimental::meta;
@@ -225,20 +239,31 @@ namespace hashing
 
   constexpr hash_append_fn hash_append;
 
+  // hashable
+
+  /// Satisfied when T can be hashed with `H`.
+  template<typename T, typename H>
+  concept hashable_with =
+    hash_algorithm<H> &&
+    requires (T const& t, H& hash) {
+      hash_append(hash, t);
+    };
+  
   // hash object
 
-  /// Computes the hash values of objects.
-  template<typename T>
+  /// A hash function that can (presumably) work
+  template<hash_algorithm H>
   struct hash
   {
-    std::size_t operator()(const T& obj) const noexcept
+    template<hashable_with<H> T>
+    hash_result_t<H> operator()(const T& obj) const noexcept
     {
-      fn1va64_hasher h;
-      hash_append(h, obj);
-      return (std::size_t)h;
+      H hash;
+      hash_append(hash, obj);
+      return (hash_result_t<H>)hash;
     };
   };
 
-} // namespace hashing
+} // namespace lock3
 
 #endif

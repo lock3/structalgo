@@ -1,5 +1,5 @@
-#ifndef STRUCTALGO_CONCEPTS_HPP
-#define STRUCTALGO_CONCEPTS_HPP
+#ifndef LOCK3_CONCEPTS_HPP
+#define LOCK3_CONCEPTS_HPP
 
 #include "integers.hpp"
 
@@ -8,7 +8,7 @@
 #include <experimental/meta>
 #include <experimental/compiler>
 
-namespace sa
+namespace lock3
 {
   // Always false, but always dependent.
   template<typename T>
@@ -195,6 +195,6 @@ namespace sa
     class_type<T> &&
     detail::no_anonymous_union_subobjects<T>();
 
-} // namespace sa
+} // namespace lock3
 
 #endif

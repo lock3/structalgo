@@ -1,5 +1,5 @@
-#ifndef STRUCTALGO_INTEGERS_HPP
-#define STRUCTALGO_INTEGERS_HPP
+#ifndef LOCK3_INTEGERS_HPP
+#define LOCK3_INTEGERS_HPP
 
 #include <cassert>
 #include <cstddef>
@@ -8,7 +8,7 @@
 #include <iterator>
 #include <type_traits>
 
-namespace sa
+namespace lock3
 {
   /// A contexpr iterator over a range of integers.
   ///
@@ -135,18 +135,20 @@ namespace sa
     value_type m_last;
   };
 
+  /// Returns an expandable sequence of integers.
   template<std::integral T>
   constexpr integer_range<T> ints(T last)
   {
     return integer_range<T>(last);
   }
 
+  /// Returns an expandable sequence of integers.
   template<std::integral T>
   constexpr integer_range<T> ints(T first, T last)
   {
     return integer_range<T>(first, last);
   }
 
-} // namespace sa
+} // namespace lock3
 
 #endif

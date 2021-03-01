@@ -1,5 +1,5 @@
-#ifndef COMPARISON_HPP
-#define COMPARISON_HPP
+#ifndef LOCK3_COMPARISON_HPP
+#define LOCK3_COMPARISON_HPP
 
 #include "concepts.hpp"
 
@@ -11,7 +11,7 @@
 
 #include <iostream> // FIXME: Remove this.
 
-namespace comparison
+namespace lock3
 {
   // compare
 
@@ -42,7 +42,7 @@ namespace comparison
     }
 
     /// Compare enumeration types.
-    template<sa::enumeral T>
+    template<enumeral T>
     std::strong_ordering operator()(T a, T b) const noexcept
     {
       using Z = std::underlying_type_t<T>;
@@ -74,6 +74,6 @@ namespace comparison
     return compare(a, b) == std::strong_ordering::equal;
   }
 
-} // namespace comparison
+} // namespace lock3
 
 #endif
