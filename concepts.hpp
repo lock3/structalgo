@@ -73,7 +73,7 @@ namespace lock3
     // non-tuple types (or maybe rightly). The specialization may be valid,
     // but the initializer is not. Something is a little off.
     template<typename T>
-    concept tuple_type =
+    concept std_product_type =
       class_type<T> &&
       requires {
         { std::tuple_size<T>::value } -> std::integral;
@@ -163,7 +163,7 @@ namespace lock3
     // causing the compiler to crash on expanding plan classes.
     template<typename T>
     concept is_destructurable =
-      tuple_type<T> ||
+      std_product_type<T> ||
       destructurable_class_type<T> ||
       std::is_array_v<T>;
 

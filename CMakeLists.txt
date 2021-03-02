@@ -28,7 +28,11 @@ add_library(sa
 
 add_executable(hash
   hash.cpp)
-
 add_executable(compare
   compare.cpp)
-
+add_executable(tuple
+  tuple.cpp)
+add_executable(json-write
+  json-write.cpp)
+add_executable(json-read
+  json-read.cpp)

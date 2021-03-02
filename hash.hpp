@@ -97,6 +97,18 @@ namespace lock3
       destructurable<T> ||
       basic_data_type<T>;
 
+    // A range is bitwise hashable if it is a contiguous range over
+    // uniquely represented values.
+    template<typename R>
+    concept bitwise_hashable_range =
+      std::ranges::contiguous_range<R> &&
+      std::has_unique_object_representations_v<std::ranges::range_value_t<R>>;
+
+    // A class is bitwise hashable if it is uniquely represented.
+    template<typename T>
+    concept bitwise_hashable_class =
+      std::has_unique_object_representations_v<T>;
+
   } // namespace detail
 
   struct hash_append_fn
@@ -147,15 +159,6 @@ namespace lock3
     /// the case---when the sets of types overlap---we can only choose behaviors
     /// based on some preference. That's where constexpr if comes into play.
     ///
-    /// TODO: Define requirements for this algorithm.
-    ///
-    /// TODO: Provide a specialization for composite data types with unique
-    /// object representation. Those can be applied separately for the range and
-    /// destructuring cases, and possibly data type cases. We might also want to
-    /// emit a warning for customizations that could be optimized, although
-    /// those warnings are spurious if not all members are hashed by the
-    /// customizing type.
-    ///
     /// TODO: Some ranges (e.g., filter_view) are not const-iterable. To
     /// facilitatee those, we probably need to forward `obj` and rethink all
     /// our concepts.
@@ -199,8 +202,8 @@ namespace lock3
     }
 
     // Hash append for ranges.
-    template<hash_algorithm H, std::ranges::range T>
-    void append_range(H& hash, T const& range) const noexcept
+    template<hash_algorithm H, std::ranges::range R>
+    void append_range(H& hash, R const& range) const noexcept
     {
       std::size_t count = 0;
       for (auto const& elem : range) {
@@ -210,16 +213,36 @@ namespace lock3
       operator()(hash, count);
     }
 
-    // Hash append for arrays, tuples, and other simple classes.
+    // Hash append for contiguous ranges of uniquely represented objects.
+    template<hash_algorithm H, detail::bitwise_hashable_range R>
+    void append_range(H& hash, R const& range) const noexcept
+    {
+      auto* ptr = &*std::begin(range);
+      auto len = std::ranges::size(range);
+      hash(ptr, len);
+      operator()(hash, len);
+    }
+
+    // Hash append for tuples and other simple classes. Note that arrays
+    // are handled by append_range, which takes precedence.
     template<hash_algorithm H, destructurable T>
     void append_destructurable(H& hash, T const& obj) const noexcept
     {
+      static_assert(!std::is_array_v<T>);
       std::size_t count = 0;
       template for (auto const& member : obj) {
         operator()(hash, member);
         ++count;
       }
       operator()(hash, count);
+    }
+
+    // Hash append for uniquely represented destructurable classes.
+    template<hash_algorithm H, destructurable T>
+      requires detail::bitwise_hashable_class<T>
+    void append_destructurable(H& hash, T const& obj) const noexcept
+    {
+      hash(&obj, sizeof(obj));
     }
 
     // Hash append for basic data types in an application domain.
@@ -234,6 +257,14 @@ namespace lock3
         ++count;
       }
       operator()(hash, count);
+    }
+
+    // Hash append for uniquely represented destructurable classes.
+    template<hash_algorithm H, basic_data_type T>
+      requires detail::bitwise_hashable_class<T>
+    void append_data_type(H& hash, T const& obj) const noexcept
+    {
+      hash(&obj, sizeof(T));
     }
   };
 
