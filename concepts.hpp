@@ -195,6 +195,43 @@ namespace lock3
     class_type<T> &&
     detail::no_anonymous_union_subobjects<T>();
 
+  // container
+
+  // FIXME: Add a bunch more requirements.
+  //
+  // TODO: regular only applie when the container has a definite ordering
+  // of its elements (i.e., iterators visit elements in the same order).
+  // Since those are the only types of containers we care about, we'll make
+  // regularity a requirement here.
+  template<typename T>
+  concept container =
+    std::regular<T> &&
+    std::ranges::range<T> &&
+    requires (T const& cont) {
+      typename T::size_type;
+      { cont.size() } -> std::same_as<typename T::size_type>;
+      { cont.empty() } -> std::same_as<bool>;
+    };
+
+  // container types
+
+  template<container T>
+  using container_value_t = typename T::value_type;
+
+  template<container T>
+  using container_size_t = typename T::size_type;
+
+  // back insertion sequence
+
+  template<typename T>
+  concept back_insertion_sequence =
+    container<T> &&
+    requires (T& t, container_value_t<T> x) {
+      { t.back() } -> std::same_as<container_value_t<T>>;
+      t.push_back(x);
+      t.pop_back();
+    };
+
 } // namespace lock3
 
 #endif

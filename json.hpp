@@ -294,19 +294,23 @@ namespace lock3::json
       str = scan_string();
     }
 
-    // template<std::ranges::range R>
-    // void write_array(R const& range)
-    // {
-    //   out << '[';
-    //   auto first = std::begin(range);
-    //   auto last = std::end(range);
-    //   for (auto iter = first; iter != last; ++iter) {
-    //     derived().write(*iter);
-    //     if (std::next(iter) != last)
-    //       out << ',';
-    //   }
-    //   out << ']';
-    // }
+    // TODO: There's another version where the size of the of sequence is
+    // fixed at compile-time (e.g., array). Presumably, we could do something
+    // similar for tuples also.
+    template<back_insertion_sequence S>
+    void read_sequence(S& seq)
+    {
+      expect_punctuation('[');
+      while (true) {
+        container_value_t<S> obj;
+        derived().read(obj);
+        seq.push_back(obj);
+        if (in.peek() == ']')
+          break;
+        expect_punctuation(',');
+      }
+      expect_punctuation(']');
+    }
 
     template<typename T>
     void read_member(T& obj, std::string const& name)
