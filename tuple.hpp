@@ -44,6 +44,8 @@ namespace lock3
       return detail::get_data_type_member<N>(t);
   }
 
+  /// FIXME: Add some kind of tuple_size (call size() and make it constexpr)?
+
 } // namespace lock3
 
 #endif
