@@ -176,7 +176,7 @@ namespace lock3::json
     {
       if (in.peek() != c) {
         std::stringstream ss;
-        ss << "expected '" << c << "'";
+        ss << "expected '" << c << "' but got '" << (char)in.peek() << "'";
         error(ss.str());
       }
       get_char();
@@ -197,7 +197,7 @@ namespace lock3::json
         if (!std::isspace(c))
           break;
         get_char();
-      }      
+      }
     }
 
     std::string scan_word()
@@ -252,6 +252,7 @@ namespace lock3::json
     std::string scan_string()
     {
       std::string s;
+      skip_space();
       expect_char('"');
       while (char c = in.peek()) {
         if (c == '"')
@@ -261,6 +262,7 @@ namespace lock3::json
         s += get_char();
       }
       expect_char('"');
+      skip_space();
       return s;
     }
 
@@ -374,8 +376,8 @@ namespace lock3::json
     }
 
     In& in;
-    int line;
-    int column;
+    int line = 1;
+    int column = 1;
   };
 
   /// A simple JSON reader that handles classes without indirection.
