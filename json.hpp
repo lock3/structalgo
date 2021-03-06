@@ -81,7 +81,7 @@ namespace lock3::json
       namespace meta = std::experimental::meta;
       out << '{';
       constexpr auto members = meta::members_of(^T, meta::is_data_member);
-      constexpr std::size_t num = meta::size(members);
+      constexpr std::size_t num = size(members);
       std::size_t count = 0;
       template for (constexpr meta::info member : members) {
         out << '"' << meta::name_of(member) << '"' << ':';
