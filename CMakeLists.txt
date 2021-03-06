@@ -38,3 +38,6 @@ add_executable(json-read
   json-read.cpp)
 # add_executable(universal
   # universal.cpp)
+
+  add_executable(counting
+    counting.cpp)
