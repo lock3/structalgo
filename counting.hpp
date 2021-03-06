@@ -21,10 +21,24 @@ consteval meta::info indirections_refl(meta::info type, int n)
   return type;
 }
 
+// template<typename T, int N>
+// auto indirections_fast()
+// {
+//   return typename [:indirections_refl(^T, N):]{};
+// }
+
 template<typename T, int N>
 auto indirections_fast()
 {
-  return typename [:indirections_refl(^T, N):]{};
+  constexpr auto type = []() consteval {
+    auto type = ^T;
+    for (int i = 0; i < N; ++i) {
+      type = meta::add_pointer(type);
+    }
+    return type;
+  }();
+
+  return typename [:type:]{};
 }
 
 #endif

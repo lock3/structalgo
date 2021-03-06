@@ -10,7 +10,7 @@
 
 namespace lock3
 {
-  /// A contexpr iterator over a range of integers.
+  /// A constexpr iterator over a range of integers.
   ///
   /// TODO: What's the minimal boilerplate needed to define a C++20 iterator?
   template<std::integral T>
